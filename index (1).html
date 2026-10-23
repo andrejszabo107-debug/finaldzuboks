@@ -1,0 +1,741 @@
+
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Džuboks</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Arial, sans-serif;
+      background: #10131f;
+      color: white;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(
+        ellipse at top, #25203e, #10131f 65%
+      );
+    }
+
+    header {
+      padding: 22px;
+      border-bottom: 1px solid #303247;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 25px;
+      font-weight: bold;
+      color: #b79aff;
+    }
+
+    main {
+      max-width: 570px;
+      margin: 45px auto;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 { font-size: 29px; }
+    p { color: #a7a9bc; }
+
+    .categories {
+      display: flex;
+      gap: 12px;
+      margin: 28px 0;
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+      border: none;
+      border-radius: 12px;
+      padding: 15px;
+      transition: .2s;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .45;
+    }
+
+    .category {
+      flex: 1;
+      background: #26283a;
+      color: white;
+    }
+
+    .category.active {
+      background: #7447da;
+    }
+
+    .card {
+      background: #1d2133;
+      border: 1px solid #36394e;
+      border-radius: 20px;
+      padding: 25px;
+      margin-top: 22px;
+    }
+
+    .bars {
+      display: flex;
+      gap: 6px;
+      margin: 24px 0;
+    }
+
+    .bar {
+      flex: 1;
+      height: 9px;
+      background: #45475a;
+      border-radius: 8px;
+    }
+
+    .bar.active { background: #a78bfa; }
+
+    .play {
+      background: #a78bfa;
+      color: #111;
+      font-size: 27px;
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      margin: 18px;
+    }
+
+    input {
+      width: 100%;
+      padding: 16px;
+      border: 1px solid #484b61;
+      border-radius: 12px;
+      background: #282b3e;
+      color: white;
+      font-size: 16px;
+      outline: none;
+    }
+
+    input:focus { border-color: #a78bfa; }
+
+    .suggestions {
+      text-align: left;
+      margin-top: 8px;
+    }
+
+    .suggestions button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: #303348;
+      color: white;
+      margin-top: 4px;
+    }
+
+    .primary {
+      width: 100%;
+      background: #8655e8;
+      color: white;
+      margin-top: 12px;
+      font-weight: bold;
+    }
+
+    .secondary {
+      width: 100%;
+      background: transparent;
+      border: 1px solid #55586c;
+      color: white;
+      margin-top: 10px;
+    }
+
+    .message {
+      margin-top: 20px;
+      line-height: 1.6;
+      font-weight: bold;
+    }
+
+    .success { color: #4ade80; }
+    .error { color: #fb7185; }
+
+
+    .stats { margin-top: 22px; text-align: left; }
+    .stats h2 { text-align: center; margin: 0 0 20px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .stat-tile { background: #282b40; border: 1px solid #41445d; border-radius: 13px; padding: 16px 10px; text-align: center; }
+    .stat-value { display: block; color: #b79aff; font-size: 29px; font-weight: bold; }
+    .stat-label { display: block; color: #b6b7ca; font-size: 13px; margin-top: 5px; }
+    .stats-subtitle { margin: 23px 0 12px; font-weight: bold; text-align: center; }
+    .distribution-row { display: grid; grid-template-columns: 22px 1fr 30px; gap: 10px; align-items: center; margin: 9px 0; color: #c7c5d8; }
+    .distribution-track { height: 12px; background: #42445a; border-radius: 10px; overflow: hidden; }
+    .distribution-fill { height: 100%; background: #a78bfa; border-radius: 10px; }
+    .stats-note { text-align: center; font-size: 12px; line-height: 1.5; margin-top: 17px; }
+
+    .hidden { display: none; }
+
+    footer {
+      text-align: center;
+      color: #777b91;
+      padding: 30px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="logo">♫ Džuboks</div>
+  <span>🇸🇰</span>
+</header>
+
+<main>
+  <p>DENNÁ HUDOBNÁ VÝZVA</p>
+  <h1>Uhádni slovenský hit!</h1>
+  <p>Každý deň nová pesnička. Máš 6 pokusov.</p>
+
+  <div class="categories">
+    <button class="category" id="mixBtn"
+      onclick="selectCategory('mix')">
+      🎸 Všetko
+    </button>
+    <button class="category" id="rapBtn"
+      onclick="selectCategory('rap')">
+      🎤 Iba rap
+    </button>
+  </div>
+
+  <div class="card">
+    <p id="challenge">DENNÁ VÝZVA</p>
+    <h2 id="heading">Vyber kategóriu</h2>
+
+    <div class="bars" id="bars"></div>
+
+    <p id="duration">Ukážka: 1 sekunda</p>
+
+    <button class="play" id="playBtn"
+      onclick="playSnippet()">▶</button>
+
+    <p id="attemptText">Pokus 1 / 6</p>
+
+    <div id="gameControls">
+      <input
+        id="guess"
+        placeholder="Názov pesničky alebo interpret..."
+        autocomplete="off"
+        oninput="showSuggestions()"
+      >
+
+      <div class="suggestions" id="suggestions"></div>
+
+      <button class="primary" onclick="submitGuess()">
+        Potvrdiť odpoveď
+      </button>
+
+      <button class="secondary" onclick="skipGuess()">
+        Preskočiť pokus →
+      </button>
+    </div>
+
+    <div id="message" class="message"></div>
+    <p id="countdown"></p>
+  </div>
+
+  <section class="card stats" aria-label="Moje štatistiky">
+    <h2 id="statsHeading">📊 Moje štatistiky – Iba rap</h2>
+    <div class="stats-grid">
+      <div class="stat-tile"><span class="stat-value" id="statPlayed">0</span><span class="stat-label">Odohrané hry</span></div>
+      <div class="stat-tile"><span class="stat-value" id="statWins">0</span><span class="stat-label">Výhry</span></div>
+      <div class="stat-tile"><span class="stat-value" id="statRate">0 %</span><span class="stat-label">Úspešnosť</span></div>
+      <div class="stat-tile"><span class="stat-value" id="statAverage">–</span><span class="stat-label">Priemer pokusov pri výhre</span></div>
+      <div class="stat-tile"><span class="stat-value" id="statStreak">0</span><span class="stat-label">Aktuálna séria výhier</span></div>
+      <div class="stat-tile"><span class="stat-value" id="statBest">0</span><span class="stat-label">Najdlhšia séria</span></div>
+    </div>
+    <div class="stats-subtitle">Výhry podľa pokusu</div>
+    <div id="statsDistribution"></div>
+    <p class="stats-note">Štatistiky sú oddelené podľa kategórie a ukladajú sa iba v tomto prehliadači a na tomto zariadení.</p>
+  </section>
+</main>
+
+<footer>Džuboks © 2026</footer>
+
+<script>
+  
+const songs = {
+  rap: [
+    {
+      artist: "Rytmus",
+      title: "AKM",
+      audio: "audio/rap/Rytmus - AKM.mp3"
+    },
+    {
+      artist: "Rytmus",
+      title: "Attila",
+      audio: "audio/rap/Rytmus - Attila.mp3"
+    },
+    {
+      artist: "Separ",
+      title: "Aura",
+      audio: "audio/rap/Separ - Aura.mp3"
+    },
+    {
+      artist: "Separ",
+      title: "Alibaba",
+      audio: "audio/rap/Separ - Alibaba.mp3"
+    },
+    {
+      artist: "Separ",
+      title: "Bbejbb",
+      audio: "audio/rap/Separ - Bbejbb.mp3"
+    },
+    {
+      artist: "DMS",
+      title: "10 minút",
+      audio: "audio/rap/DMS - 10 minút.mp3"
+    },
+    {
+      artist: "Gleb",
+      title: "Audiokniha",
+      audio: "audio/rap/Gleb - Audiokniha.mp3"
+    },
+    {
+      artist: "Kali",
+      title: "Bol raz jeden kráľ",
+      audio: "audio/rap/Kali - Bol raz jeden kráľ.mp3"
+    },
+    {
+      artist: "Separ",
+      title: "AENE",
+      audio: "audio/rap/Separ - AENE.mp3"
+    }
+  ],
+  mix: [
+    {
+        "artist": "IMT Smile",
+        "title": "Cesty II. triedy",
+        "audio": "audio/mix/IMT Smile - Cesty II. triedy.mp3"
+    },
+    {
+        "artist": "IMT Smile",
+        "title": "Exotika",
+        "audio": "audio/mix/IMT Smile - Exotika.mp3"
+    },
+    {
+        "artist": "Hex",
+        "title": "Keď sme sami",
+        "audio": "audio/mix/Hex - Keď Sme Sami.mp3"
+    },
+    {
+        "artist": "Tublatanka",
+        "title": "Dnes",
+        "audio": "audio/mix/Tublatanka - Dnes.mp3"
+    },
+    {
+        "artist": "Team",
+        "title": "Držím ti miesto",
+        "audio": "audio/mix/Team - Držím ti miesto.mp3"
+    },
+    {
+        "artist": "Peter Nagy",
+        "title": "Aj tak sme stále frajeri",
+        "audio": "audio/mix/Peter Nagy - Aj tak sme frajeri.mp3"
+    },
+    {
+        "artist": "Gladiátor",
+        "title": "Bonboniéra",
+        "audio": "audio/mix/Gladiátor - Bonboniera.mp3"
+    },
+    {
+        "artist": "Gladiátor",
+        "title": "Dnes je skvelý deň",
+        "audio": "audio/mix/Gladiátor - Dnes Je Skvelý Deň.mp3"
+    },
+    {
+        "artist": "Vašo Patejdl",
+        "title": "Ak nie si moja",
+        "audio": "audio/mix/Vašo Patejdl - Ak nie si moja.mp3"
+    }
+]
+};
+
+
+  const durations = [1, 2, 4, 7, 11, 16];
+
+  let category = "rap";
+  let attempt = 0;
+  let finished = false;
+  let selectedSong = null;
+  let audio = new Audio();
+  let stopTimer = null;
+  let playbackToken = 0;
+  let snippetElapsed = 0;
+  let playbackStartedAt = 0;
+
+  const $ = id => document.getElementById(id);
+
+  function todaySK() {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/Bratislava",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).format(new Date());
+  }
+
+  function dayNumber() {
+    const start = Date.UTC(2026, 9, 23);
+    const today = Date.parse(todaySK() + "T00:00:00Z");
+    return Math.max(0, Math.floor((today - start) / 86400000));
+  }
+
+  function getDailySong(type) {
+    const list = songs[type];
+    if (!list.length) return null;
+    return list[dayNumber() % list.length];
+  }
+
+  function storageKey() {
+    return "songguess:" + todaySK() + ":" + category;
+  }
+
+  function normalize(text) {
+    return text.toLocaleLowerCase("sk")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]/g, "");
+  }
+
+  function selectCategory(type) {
+    stopAudio();
+    category = type;
+    renderStats();
+    selectedSong = getDailySong(type);
+    attempt = 0;
+    finished = false;
+
+    $("mixBtn").classList.toggle("active", type === "mix");
+    $("rapBtn").classList.toggle("active", type === "rap");
+    $("guess").value = "";
+    $("suggestions").innerHTML = "";
+    $("message").className = "message";
+    $("message").textContent = "";
+
+    $("challenge").textContent =
+      "DENNÁ VÝZVA #" + (dayNumber() + 1);
+
+    if (!selectedSong) {
+      $("heading").textContent = "Zatiaľ bez skladieb";
+      $("message").textContent =
+        "Do tejto kategórie ešte musíme pridať MP3.";
+      $("gameControls").classList.add("hidden");
+      $("playBtn").disabled = true;
+      $("bars").innerHTML = "";
+      return;
+    }
+
+    audio.src = selectedSong.audio;
+    audio.preload = "auto";
+    $("heading").textContent = "Uhádni pesničku!";
+    $("playBtn").disabled = false;
+
+    const saved = localStorage.getItem(storageKey());
+
+    if (saved) {
+      const state = JSON.parse(saved);
+      attempt = state.attempt;
+      finished = state.finished;
+
+      if (finished) {
+        showResult(state.won);
+        return;
+      }
+    }
+
+    $("gameControls").classList.remove("hidden");
+    render();
+  }
+
+  function render() {
+    $("bars").innerHTML = durations.map((_, i) =>
+      `<div class="bar ${i <= attempt ? "active" : ""}"></div>`
+    ).join("");
+
+    $("duration").textContent =
+      "Ukážka: " + durations[attempt] + " s";
+
+    $("attemptText").textContent =
+      "Pokus " + (attempt + 1) + " / 6";
+  }
+
+  function stopAudio() {
+    playbackToken++;
+    clearTimeout(stopTimer);
+    stopTimer = null;
+    audio.pause();
+    audio.currentTime = 0;
+    snippetElapsed = 0;
+    playbackStartedAt = 0;
+    $("playBtn").textContent = "▶";
+  }
+
+  async function playSnippet() {
+    if (!selectedSong || finished) return;
+
+    // Druhé kliknutie pozastaví prehrávanie a zachová zostávajúci čas.
+    if (!audio.paused) {
+      playbackToken++;
+      clearTimeout(stopTimer);
+      stopTimer = null;
+      snippetElapsed += performance.now() - playbackStartedAt;
+      audio.pause();
+      $("playBtn").textContent = "▶";
+      return;
+    }
+
+    const limit = durations[attempt] * 1000;
+    if (snippetElapsed >= limit) {
+      snippetElapsed = 0;
+      audio.currentTime = 0;
+    }
+
+    const token = ++playbackToken;
+    try {
+      await audio.play();
+      // Ignoruj staré asynchrónne volania po zmene kategórie/pokusu.
+      if (token !== playbackToken) {
+        audio.pause();
+        return;
+      }
+      playbackStartedAt = performance.now();
+      $("playBtn").textContent = "Ⅱ";
+      clearTimeout(stopTimer);
+      stopTimer = setTimeout(() => {
+        if (token === playbackToken) stopAudio();
+      }, Math.max(0, limit - snippetElapsed));
+    } catch (error) {
+      if (token !== playbackToken) return;
+      $("playBtn").textContent = "▶";
+      const fileUrl = new URL(selectedSong.audio, document.baseURI).href;
+      const mediaError = audio.error;
+      const reason = mediaError?.code === 4
+        ? "Súbor sa nenašiel alebo má nepodporovaný formát."
+        : mediaError?.code === 3
+        ? "Prehliadač nedokázal dekódovať MP3."
+        : mediaError?.code === 2
+        ? "Nepodarilo sa stiahnuť zvukový súbor."
+        : "Skontroluj cestu k MP3 a formát súboru.";
+      $("message").className = "message error";
+      $("message").textContent = "MP3 sa nepodarilo prehrať: " + reason;
+      console.error("Chyba prehrávania:", { fileUrl, error, mediaError });
+    }
+  }
+
+  function showSuggestions() {
+    const value = normalize($("guess").value);
+    const container = $("suggestions");
+    container.innerHTML = "";
+
+    if (!value) return;
+
+    const matches = songs[category].filter(song =>
+      normalize(song.title).includes(value) ||
+      normalize(song.artist).includes(value)
+    ).slice(0, 8);
+
+    matches.forEach(song => {
+      const button = document.createElement("button");
+      button.textContent = song.artist + " – " + song.title;
+      button.onclick = () => {
+        $("guess").value = song.artist + " – " + song.title;
+        container.innerHTML = "";
+      };
+      container.appendChild(button);
+    });
+  }
+
+  function submitGuess() {
+    if (finished || !selectedSong) return;
+
+    const guess = normalize($("guess").value);
+    if (!guess) return;
+
+    const correctTitle = normalize(selectedSong.title);
+    const correctFull = normalize(
+      selectedSong.artist + " – " + selectedSong.title
+    );
+
+    if (guess === correctTitle || guess === correctFull) {
+      finishGame(true);
+    } else {
+      nextAttempt();
+    }
+  }
+
+  function skipGuess() {
+    if (!finished && selectedSong) nextAttempt();
+  }
+
+  function nextAttempt() {
+    stopAudio();
+
+    if (attempt >= 5) {
+      finishGame(false);
+      return;
+    }
+
+    attempt++;
+    $("guess").value = "";
+    $("suggestions").innerHTML = "";
+    $("message").textContent = "Skús to znova!";
+
+    saveState(false, false);
+    render();
+  }
+
+  function saveState(done, won) {
+    localStorage.setItem(storageKey(), JSON.stringify({
+      attempt,
+      finished: done,
+      won
+    }));
+  }
+
+
+  // Jedna dokončená hra na deň a kategóriu. Záznamy sú lokálne pre prehliadač.
+  const statsKey = "dzuboks:statistics:v1";
+
+  function readStats() {
+    try {
+      const data = JSON.parse(localStorage.getItem(statsKey) || "{}");
+      return data && typeof data === "object" && !Array.isArray(data) ? data : {};
+    } catch (error) {
+      return {};
+    }
+  }
+
+  function recordResult(won) {
+    const data = readStats();
+    const key = todaySK() + ":" + category;
+    if (Object.prototype.hasOwnProperty.call(data, key)) return;
+    data[key] = { date: todaySK(), category, won: Boolean(won), attempts: attempt + 1 };
+    try { localStorage.setItem(statsKey, JSON.stringify(data)); }
+    catch (error) { console.warn("Štatistiky sa nepodarilo uložiť:", error); }
+    renderStats();
+  }
+
+  function renderStats() {
+    $("statsHeading").textContent = "📊 Moje štatistiky – " + (category === "rap" ? "Iba rap" : "Všetko");
+    const entries = Object.values(readStats()).filter(item =>
+      item && item.category === category && typeof item.date === "string" && typeof item.won === "boolean"
+    );
+    const wins = entries.filter(item => item.won);
+    const played = entries.length;
+    $("statPlayed").textContent = played;
+    $("statWins").textContent = wins.length;
+    $("statRate").textContent = played ? Math.round(wins.length / played * 100) + " %" : "0 %";
+    $("statAverage").textContent = wins.length
+      ? (wins.reduce((sum, item) => sum + item.attempts, 0) / wins.length).toFixed(1).replace(".", ",")
+      : "–";
+
+    // Séria sa počíta po kalendárnych dňoch. Stačí jedna výhra v daný deň.
+    const dayResults = new Map();
+    for (const item of entries) {
+      dayResults.set(item.date, Boolean(dayResults.get(item.date)) || item.won);
+    }
+    const days = [...dayResults.keys()].sort();
+    let best = 0, run = 0, previous = null;
+    const dayBefore = date => {
+      const d = new Date(date + "T00:00:00Z");
+      d.setUTCDate(d.getUTCDate() - 1);
+      return d.toISOString().slice(0, 10);
+    };
+    for (const day of days) {
+      if (dayResults.get(day)) {
+        run = previous && dayBefore(day) === previous ? run + 1 : 1;
+        best = Math.max(best, run);
+      } else run = 0;
+      previous = day;
+    }
+    const today = todaySK();
+    let cursor = dayResults.has(today) ? today : dayBefore(today);
+    let current = 0;
+    while (dayResults.get(cursor) === true) {
+      current++;
+      cursor = dayBefore(cursor);
+    }
+    $("statStreak").textContent = current;
+    $("statBest").textContent = best;
+
+    const counts = Array.from({ length: 6 }, (_, i) =>
+      wins.filter(item => item.attempts === i + 1).length
+    );
+    const max = Math.max(1, ...counts);
+    $("statsDistribution").innerHTML = counts.map((count, i) =>
+      `<div class="distribution-row"><span>${i + 1}</span>` +
+      `<div class="distribution-track"><div class="distribution-fill" style="width:${count / max * 100}%"></div></div>` +
+      `<span>${count}</span></div>`
+    ).join("");
+  }
+
+  function finishGame(won) {
+    stopAudio();
+    finished = true;
+    saveState(true, won);
+    recordResult(won);
+    showResult(won);
+  }
+
+  function showResult(won) {
+    $("gameControls").classList.add("hidden");
+    $("playBtn").disabled = true;
+
+    $("message").className =
+      "message " + (won ? "success" : "error");
+
+    $("message").textContent = won
+      ? "🎉 Správne! " + selectedSong.artist +
+        " – " + selectedSong.title
+      : "❌ Dnes sa nepodarilo. Správna odpoveď: " +
+        selectedSong.artist + " – " + selectedSong.title;
+
+    render();
+  }
+
+  function updateCountdown() {
+    const now = new Date();
+    const date = todaySK();
+
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Europe/Bratislava",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23"
+    }).format(now).split(":").map(Number);
+
+    const remaining =
+      86400 - (parts[0] * 3600 + parts[1] * 60 + parts[2]);
+
+    const h = String(Math.floor(remaining / 3600)).padStart(2, "0");
+    const m = String(Math.floor(remaining % 3600 / 60)).padStart(2, "0");
+    const s = String(remaining % 60).padStart(2, "0");
+
+    $("countdown").textContent =
+      "Ďalšia výzva za " + h + ":" + m + ":" + s;
+
+    if (window.loadedDate !== date) {
+      window.loadedDate = date;
+      selectCategory(category);
+    }
+  }
+
+  renderStats();
+  selectCategory("rap");
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+</script>
+</body>
+</html>
